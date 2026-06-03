@@ -6,8 +6,6 @@ import random
 from collections import deque
 import heapq  # POTŘEBNÉ PRO PRIORITNÍ FRONTU V A*
 
-#test
-
 MAP_SIZE = 70
 
 FOOD_QUANTITY = 170
@@ -30,6 +28,9 @@ SAND_COST = 3
 GRASS_COST = 1
 MOUNTAIN_COST = 6
 SNOW_COST = 10
+
+SAME_SEED = True
+SEED = 50
 
 SHARE_MEMORY = True
 colony_memory = {
@@ -764,7 +765,7 @@ class AStarStrategy(PathfindingStrategy):
         return []
 # ---------------- MAIN ----------------
 
-color_matrix, height_matrix = WorldGen(MAP_SIZE, MAP_SIZE, random.randint(0,10000))
+color_matrix, height_matrix = WorldGen(MAP_SIZE, MAP_SIZE, SEED if SAME_SEED else random.randint(0,10000))
 
 walkable_tiles = np.sum(height_matrix > 0)
 
