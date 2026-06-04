@@ -177,12 +177,12 @@ def HandleCombat(ants, foods):
             stats[ant.colony_type]["deaths"] += 1
 
             if ant.carrying_food:
-                print(f"PADOL! Mravec {ant.colony_type}#{ant.ant_id} padol v boji a pustil jedlo na [{ant.pos_x}, {ant.pos_y}]")
+                print(f"ZEMREL! Mravenec {ant.colony_type}#{ant.ant_id} zemrel v boji a pustil jidlo na [{ant.pos_x}, {ant.pos_y}]")
                 # položení jídla
                 foods.append(Food(ant.pos_x, ant.pos_y))
                 ant.carrying_food = False  # Ošetrenie proti duplicitnému dropu
             else:
-                print(f"PADOL! Mravec {ant.colony_type}#{ant.ant_id} zomrel v boji na [{ant.pos_x}, {ant.pos_y}]")
+                print(f"ZEMREL! Mravenec {ant.colony_type}#{ant.ant_id} zemrel v boji na [{ant.pos_x}, {ant.pos_y}]")
             
             # pojistka
             ant.hp = -999
@@ -815,24 +815,41 @@ color_matrix, height_matrix = WorldGen(MAP_SIZE, MAP_SIZE, random.randint(0,1000
 walkable_tiles = np.sum(height_matrix > 0)
 
 # generování hnízd
+# definujeme si konfiguraci pro jednotlivá hnízda (typ a barvu)
+nest_configs = [
+    {"type": "BFS", "color": (0.7, 0.42, 0)},
+    {"type": "DFS", "color": (0.0, 0.0, 0.7)},
+    {"type": "ASTAR", "color": (0, 0.4, 0)}
+]
+
+# zamícháme pořadí konfigurací – pokaždé bude pořadí generování jiné
+random.shuffle(nest_configs)
+
+# použijeme slovník, abychom si vygenerovaná hnízda uložili podle jejich typu
+nests_dict = {}
 nests = []
 
-bfs_nest = GenerateNest(color_matrix, height_matrix, nests, nest_color=(0.7, 0.42, 0))
-nests.append(bfs_nest)
+# vygenerujeme hnízda v tomto náhodném pořadí
+for config in nest_configs:
+    colony_type = config["type"]
+    color = config["color"]
+    
+    generated_pos = GenerateNest(color_matrix, height_matrix, nests, nest_color=color)
+    nests.append(generated_pos)
 
-dfs_nest = GenerateNest(color_matrix, height_matrix, nests, nest_color=(0.0, 0.0, 0.7))
-nests.append(dfs_nest)
+    nests_dict[colony_type] = generated_pos
 
-astar_nest = GenerateNest(color_matrix, height_matrix, nests, nest_color=(0, 0.4, 0))
-nests.append(astar_nest)
+# extrahujeme si hnízda pro konkrétní proměnné
+bfs_nest = nests_dict["BFS"]
+dfs_nest = nests_dict["DFS"]
+astar_nest = nests_dict["ASTAR"]
 
+# zápis políček hnízd do setu
 nest_tiles = set()
 
 for nest in [bfs_nest, dfs_nest, astar_nest]:
-
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
-
             nest_tiles.add((nest[0] + dx, nest[1] + dy))
 
 # inicializace statistik
@@ -883,12 +900,12 @@ spawn_threshold = {
     "ASTAR": SPAWN_THRESHOLD_STEP
 }
 
+ants = []
+hp_texts = []
+
 # generování jídla
 for _ in range(FOOD_QUANTITY):
     spawn_food()
-
-ants = []
-hp_texts = []
 
 # inicializace mravenců
 for _ in range(STARTING_ANTS):
