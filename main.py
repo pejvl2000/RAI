@@ -52,6 +52,8 @@ colony_memory = {
     }
 }
 
+next_ant_id = 1
+
 # ---------------- WORLD ----------------
 
 def WorldGen(size_x, size_y, seed_id):
@@ -252,7 +254,10 @@ class Ant:
         self.attack = ANT_ATTACK
         self.vision_radius = VISION_RAD
         self.combat_lock = 0
-        self.ant_id = random.randint(1, 999)
+        global next_ant_id
+
+        self.ant_id = next_ant_id
+        next_ant_id += 1
         self.wait_ticks = 0
 
         # sdílení paměti mezi mravenci stejné kolonie (navštívené, objevené a zacílené pozice)
