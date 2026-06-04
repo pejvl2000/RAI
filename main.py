@@ -641,11 +641,67 @@ class DfsStrategy(PathfindingStrategy):
         return []
 
     def find_path_home(self, ant):
-        #BFS hledání cesty domů, protože DFS by mohl zabloudit a jít dlouhou cestou kolem, zatímco BFS najde nejkratší cestu
-        return BfsStrategy().find_path_home(ant)
+        start = (ant.pos_x, ant.pos_y)
+        goal = ant.nest_pos
+        
+        stack = [start]
+        parent = {}
+        visited_in_dfs = {start}
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        while stack:
+            curr = stack.pop()
+            # pokud jsme nalezli hnízdo, sestavíme cestu
+            if curr == goal:
+                path = []
+                while curr != start:
+                    path.append(curr)
+                    curr = parent[curr]
+                path.reverse()
+                return path
+
+            for dx, dy in directions:
+                nx, ny = curr[0] + dx, curr[1] + dy
+                neighbor = (nx, ny)
+                # při cestě domů chodí jen po navštívených polích
+                if neighbor in ant.visited and neighbor not in visited_in_dfs:
+                    visited_in_dfs.add(neighbor)
+                    parent[neighbor] = curr
+                    stack.append(neighbor)  
+        return []
+    
     def find_path_to_food(self, ant, food):
-        #BFS hledání cesty k jídlu, protože DFS by mohl zabloudit a jít dlouhou cestou kolem, zatímco BFS najde nejkratší cestu
-        return BfsStrategy().find_path_to_food(ant, food)
+        start = (ant.pos_x, ant.pos_y)
+        goal = (food.pos_x, food.pos_y)
+
+        stack = [start]
+        parent = {}
+        visited_in_dfs = {start}
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        while stack:
+            curr = stack.pop()
+            if curr == goal:
+                path = []
+                while curr != start:
+                    path.append(curr)
+                    curr = parent[curr]
+                path.reverse()
+                return path
+
+            for dx, dy in directions:
+                nx, ny = curr[0] + dx, curr[1] + dy
+                neighbor = (nx, ny)
+
+                # k jídlu může jít i přes navštívená i přes objevená políčka
+                if (
+                    neighbor not in visited_in_dfs
+                    and (neighbor in ant.visited or neighbor in ant.discovered)
+                ):
+                    visited_in_dfs.add(neighbor)
+                    parent[neighbor] = curr
+                    stack.append(neighbor)
+        return []
 
 class AStarStrategy(PathfindingStrategy):
     def _heuristic(self, p1, p2):
