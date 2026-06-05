@@ -39,7 +39,7 @@ GRASS_COST = 1
 MOUNTAIN_COST = 6
 SNOW_COST = 10
 
-SHARE_MEMORY = False
+SHARE_MEMORY = True
 colony_memory = {
     "BFS": {
         "visited": set(),
