@@ -6,6 +6,12 @@ import random
 from collections import deque
 import heapq  # potřebné pro prioritní frontu v A*
 
+# ---------------- SEED ----------------
+## Pro zcela náhodný běh programu zakomentovat tyto 3 řádky:
+SEED = 1  # Může se zvolit jakékoliv celé číslo
+random.seed(SEED)
+np.random.seed(SEED)
+
 # ---------------- PARAMETERS ----------------
 
 MAP_SIZE = 70
@@ -33,7 +39,7 @@ GRASS_COST = 1
 MOUNTAIN_COST = 6
 SNOW_COST = 10
 
-SHARE_MEMORY = True
+SHARE_MEMORY = False
 colony_memory = {
     "BFS": {
         "visited": set(),
@@ -422,6 +428,7 @@ class Ant:
                     self.targeted.discard(self.targeted_tile)
                     self.targeted_tile = None
                 break
+        stats[self.colony_type]["total_energy_spent"] += terrain_cost
             
     def get_visible_food(self, foods):
         visible = []
@@ -926,7 +933,8 @@ stats = {
         "deaths": 0,
         "kills": 0,
         "path_costs": [],
-        "moves": 0
+        "moves": 0,
+        "total_energy_spent": 0
     },
 
     "DFS": {
@@ -936,7 +944,8 @@ stats = {
         "deaths": 0,
         "kills": 0,
         "path_costs": [],
-        "moves": 0
+        "moves": 0,
+        "total_energy_spent": 0
     },
 
     "ASTAR": {
@@ -946,7 +955,8 @@ stats = {
         "deaths": 0,
         "kills": 0,
         "path_costs": [],
-        "moves": 0
+        "moves": 0,
+        "total_energy_spent": 0
     }
 }
 
@@ -1008,14 +1018,14 @@ ant_plot = ax.scatter([], [], s=30, marker='s')
 
 # statistiky
 bfs_stats_text = fig.text(
-    0.75, 0.75,
+    0.75, 0.85,
     "",
     fontsize=9,
     va='top',
     bbox=dict(facecolor='orange', alpha=0.25)
 )
 dfs_stats_text = fig.text(
-    0.75, 0.55,
+    0.75, 0.60,
     "",
     fontsize=9,
     va='top',
@@ -1156,7 +1166,8 @@ def update(frame):
             len(s["tiles_discovered"]) / walkable_tiles * 100
         )
 
-        efficiency = 1 / avg_cost if avg_cost > 0 else 0
+        # Kolik jídla přinesl 1 mravenec na 100 jednotek energie
+        efficiency = (s['food_delivered'] / s['total_energy_spent'] * 100) if s['total_energy_spent'] > 0 else 0
 
         return (
             f"{colony}\n"
@@ -1166,8 +1177,9 @@ def update(frame):
             f"Avg return: {avg_return:.1f}\n"
             f"Deaths: {s['deaths']}\n"
             f"Kills: {s['kills']}\n"
+            f"Total energy spent: {s['total_energy_spent']}\n"
             f"Avg cost: {avg_cost:.1f}\n"
-            f"Efficiency: {efficiency:.2f}\n"
+            f"Efficiency: {efficiency:.2f}%\n"
             f"Coverage: {coverage:.1f}%"
         )
 
